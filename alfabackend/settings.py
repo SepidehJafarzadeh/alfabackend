@@ -137,3 +137,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+
+BASE_APP_URL ="http://localhost:3000"
+BASE_API_URL = "http://localhost:8000"
+GOOGLE_CLIENT_ID = "929037187539-rftf5lg5qmrh4sph6pav2e6bq83demdo.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
