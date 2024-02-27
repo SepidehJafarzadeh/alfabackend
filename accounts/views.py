@@ -56,6 +56,15 @@ class GoogleAuthView(APIView):
 
 
 class GoogleAuthCallbackView(APIView):
+
+    def token_generator(self, user):
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        return token
+
     def get(self, request):
         # Get the authorization code from the request
         code = request.GET.get('code')
@@ -83,20 +92,15 @@ class GoogleAuthCallbackView(APIView):
         user_info = user_info_response.json()
         # Extract user's email from the response
         user_email = user_info.get('email')
-        
-        # Create a random password for the user
-        password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
-        # Create a user using the email obtained from the Google API
-        user = User.objects.create_user(username=user_email, password=password, email=user_email)
-
-        # Log in the user
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        # Check if the user already exists
+        try:
+            user = User.objects.get(email=user_email)
+        except User.DoesNotExist:
+            # User does not exist, create a new user
+            user = User.objects.create_user(username=user_email, email=user_email, password=None)
 
         # Generate a JWT token for the user
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler((payload))
+        token = self.token_generator(user)
 
         return Response(data={'token': token}, status=status.HTTP_200_OK)
