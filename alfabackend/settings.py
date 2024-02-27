@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+#from  datetime import timedelta
+import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -137,8 +139,20 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+#JWT_AUTH = {
+#    'JWT_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_payload_handler',
+#    'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
+#}
 
 BASE_APP_URL ="http://localhost:3000"
 BASE_API_URL = "http://localhost:8000"
 GOOGLE_CLIENT_ID = "929037187539-rftf5lg5qmrh4sph6pav2e6bq83demdo.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': 'YOUR_SECRET_KEY',
+    'JWT_ALGORITHM': 'HS256',
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=30),
+}

@@ -8,8 +8,10 @@ from django.contrib.auth import authenticate, login
 from rest_framework_jwt.settings import api_settings
 from alfabackend import settings
 import requests
-
-
+import random
+import string
+from django.utils.encoding import force_bytes
+import json
 
 # Create your views here.
 class RegisterView(APIView):
@@ -42,8 +44,6 @@ class LoginView(APIView):
 
 class GoogleAuthView(APIView):
     def get(self, request):
-
-
         # Build the authorization URL
         base_url = 'https://accounts.google.com/o/oauth2/v2/auth'
         redirect_uri = "http://127.0.0.1:8000/callback/"
@@ -56,14 +56,6 @@ class GoogleAuthView(APIView):
 
 
 class GoogleAuthCallbackView(APIView):
-    def token_generator(self, user):
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        return token
-
     def get(self, request):
         # Get the authorization code from the request
         code = request.GET.get('code')
@@ -91,7 +83,20 @@ class GoogleAuthCallbackView(APIView):
         user_info = user_info_response.json()
         # Extract user's email from the response
         user_email = user_info.get('email')
-        # Process user info as needed
-        return Response(data={'token': 'sdsdds'},
-                        status=status.HTTP_200_OK)
-    
+        
+        # Create a random password for the user
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+
+        # Create a user using the email obtained from the Google API
+        user = User.objects.create_user(username=user_email, password=password, email=user_email)
+
+        # Log in the user
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+        # Generate a JWT token for the user
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler((payload))
+
+        return Response(data={'token': token}, status=status.HTTP_200_OK)
